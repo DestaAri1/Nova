@@ -1,180 +1,124 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useState, useEffect } from "react";
 import {
-  login as loginApi,
-  register as registerApi,
-  logout as logoutApi,
-  getUser as getUserApi,
+  login as loginService,
+  register as registerService,
+  logout as logoutService,
+  getUser as getUserService,
 } from "../services/AuthServices.tsx";
-import { getToken, removeToken } from "../services/TokenSevices.tsx";
+import { setTokenUser } from "../services/TokenSevices.tsx";
 
-interface User {
-  id: number;
-  email: string;
-  username?: string;
-  [key: string]: any;
-}
-
-interface AuthContextType {
+interface UseAuthReturn {
+  user: any | null;
+  isLoading: boolean;
+  error: string | null;
   login: (email: string, password: string) => Promise<any>;
   register: (email: string, password: string) => Promise<any>;
-  logout: () => void;
-  user: User | null;
-  setUser: React.Dispatch<React.SetStateAction<User | null>>;
-  isLoading: boolean;
-  fetchUser: (force?: boolean) => Promise<User | null>;
-  error: string | null;
+  logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
 }
 
-export default function useAuth(): AuthContextType {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+export default function useAuth(): UseAuthReturn {
+  const [user, setUser] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const fetchPromise = useRef<Promise<User | null> | null>(null);
-  const mounted = useRef<boolean>(false);
-  const userFetched = useRef<boolean>(false);
 
-  const fetchUser = useCallback(
-    async (force = false): Promise<User | null> => {
-      if (!getToken()) {
-        setIsLoading(false);
-        return null;
-      }
+  // Check if user is logged in on mount
+  useEffect(() => {
+    const rememberMe = localStorage.getItem("rememberMe") === "true";
+    const storedUser = localStorage.getItem("user");
 
-      if (user && userFetched.current && !force) {
-        setIsLoading(false);
-        return user;
-      }
-
-      if (fetchPromise.current) {
-        return fetchPromise.current;
-      }
-
-      try {
-        setIsLoading(true);
-        fetchPromise.current = getUserApi();
-        const userData = await fetchPromise.current;
-
-        if (mounted.current) {
-          setUser(userData);
-          userFetched.current = true;
-        }
-
-        return userData;
-      } catch (error) {
-        console.error("Error fetching user:", error);
-        if (mounted.current) {
-          logout();
-        }
-        return null;
-      } finally {
-        fetchPromise.current = null;
-        if (mounted.current) {
-          setIsLoading(false);
-        }
-      }
-    },
-    [user]
-  );
-
-  const logout = useCallback(() => {
-    removeToken();
-    logoutApi(); // optional call to backend
-    setUser(null);
-    userFetched.current = false;
-    setIsLoading(false);
-    setError(null);
+    if (rememberMe && storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
   }, []);
 
-  useEffect(() => {
-    mounted.current = true;
-
-    const initAuth = async () => {
-      if (getToken() && !userFetched.current) {
-        await fetchUser();
-      } else {
-        setIsLoading(false);
-      }
-    };
-
-    initAuth();
-
-    return () => {
-      mounted.current = false;
-    };
-  }, [fetchUser]);
-
-  const login = useCallback(
-    async (email: string, password: string) => {
+  const checkAuth = async (): Promise<void> => {
+    try {
       setIsLoading(true);
       setError(null);
-      try {
-        const response = await loginApi({ email, password });
-        if (mounted.current) {
-          await fetchUser(true);
-        }
-        Cookies.set()
-        return response;
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error
-            ? err.response.data.message
-            : "Failed to login. Please try again.";
+      const userData = await getUserService();
+      setUser(userData);
+    } catch (err) {
+      // Don't set an error here - just clear the user silently
+      setUser(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-        if (mounted.current) {
-          setError(errorMessage);
-        }
-        throw err;
-      } finally {
-        if (mounted.current) {
-          setIsLoading(false);
-        }
-      }
-    },
-    [fetchUser]
-  );
-
-  const register = useCallback(
-    async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<any> => {
+    try {
       setIsLoading(true);
       setError(null);
-      try {
-        const response = await registerApi({ email, password });
-        if (mounted.current) {
-          await fetchUser(true);
-        }
-        return response;
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error
-            ? err.response.data.message
-            : "Failed to register. Please try again.";
+      const response = await loginService({ email, password });
 
-        if (mounted.current) {
-          setError(errorMessage);
-        }
-        throw err;
-      } finally {
-        if (mounted.current) {
-          setIsLoading(false);
+      // After successful login, fetch user data
+      if (response && response.token) {
+        try {
+          const userData = response.data || (await getUserService());
+          setUser(userData);
+          setTokenUser(userData, "user");
+
+          return response;
+        } catch (userErr) {
+          console.error("Failed to get user data after login:", userErr);
+          // Still return the login response even if getting user failed
+          return response;
         }
       }
-    },
-    [fetchUser]
-  );
 
-  const authValue = useMemo(
-    () => ({
-      login,
-      register,
-      logout,
-      user,
-      setUser,
-      isLoading,
-      fetchUser,
-      error,
-    }),
-    [login, register, logout, user, isLoading, fetchUser, error]
-  );
+      return response;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message ||
+        "Login failed. Please check your credentials.";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  return authValue;
+  const register = async (email: string, password: string): Promise<any> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await registerService({ email, password });
+      return response;
+    } catch (err: any) {
+      const errorMessage =
+        err.response?.data?.message || "Registration failed. Please try again.";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      await logoutService();
+      setUser(null);
+      localStorage.removeItem("user");
+      localStorage.removeItem("rememberMe");
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || "Logout failed.";
+      setError(errorMessage);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return {
+    user,
+    isLoading,
+    error,
+    login,
+    register,
+    logout,
+    checkAuth,
+  };
 }

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Mail, Lock, EyeOff, Eye } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth.tsx";
@@ -9,20 +9,52 @@ export const Login: React.FC = () => {
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  const { login, isLoading, error } = useAuth();
+  const { login, isLoading, error: authError, user } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
+  // Combine error states
+  useEffect(() => {
+    if (authError) {
+      setLoginError(authError);
+    }
+  }, [authError]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoginError(null);
 
     try {
-      await login(email, password);
-      // If remember me is not checked, you might want to set a session cookie instead
+      const response = await login(email, password);
+
+      // Store remember me preference
+      if (rememberMe) {
+        localStorage.setItem("rememberMe", "true");
+        if (response && response.user) {
+          localStorage.setItem("user", JSON.stringify(response.user));
+        }
+      } else {
+        localStorage.removeItem("rememberMe");
+      }
+
       navigate("/dashboard");
-    } catch (err) {
-      // Error is already handled in the hook
-      console.error("Login failed:", err);
+    } catch (err: any) {
+      // Set custom error message with more details if available
+      const errorMsg =
+        err.response?.data?.message ||
+        err.message ||
+        "Login failed. Please check your network connection and try again.";
+
+      setLoginError(errorMsg);
+      console.error("Login error details:", err);
     }
   };
 
@@ -37,9 +69,9 @@ export const Login: React.FC = () => {
         </div>
 
         <div className="bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-700">
-          {error && (
+          {loginError && (
             <div className="mb-4 p-3 bg-red-900/50 border border-red-800 rounded-lg text-red-200 text-sm">
-              {error}
+              {loginError}
             </div>
           )}
 
@@ -149,3 +181,5 @@ export const Login: React.FC = () => {
     </div>
   );
 };
+
+export default Login;

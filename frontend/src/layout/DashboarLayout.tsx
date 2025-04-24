@@ -4,7 +4,7 @@ import TopNav from "../component/Navbar/Dashboard/TopNav.tsx";
 import { Home, User, UserCheck } from "lucide-react";
 import { NavItem } from "../types/Index.tsx";
 import { DashLayout, DashMain } from "../component/DashPage.tsx";
-import useAuth from "../hooks/useAuth.tsx";
+import useUser from "../hooks/useUser.tsx";
 
 interface DashboarLayoutProps {
   children: ReactNode;
@@ -15,7 +15,7 @@ export default function DashboarLayout({ children }: DashboarLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const { user } = useAuth()
+  const { user } = useUser()
 
   // Handle responsive sidebar
   useEffect(() => {
@@ -40,9 +40,6 @@ export default function DashboarLayout({ children }: DashboarLayoutProps) {
   const closeMobileMenu = () => {
     setMobileMenuOpen(false);
   };
-
-  console.log(user?.role?.name);
-  
 
    const navItems: NavItem[] = [
      {

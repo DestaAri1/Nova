@@ -1,30 +1,50 @@
-import React from 'react'
+import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import useAuth from "../hooks/useAuth.tsx"; // pastikan path sesuai dengan letak file useAuth
+import useUser from "../hooks/useUser.tsx";
 
-const ProtectedRoute = () => {
-  const { user, isLoading } = useAuth();
+const LoadingScreen = () => (
+  <div className="flex justify-center items-center h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+  </div>
+);
 
-  if (isLoading) {
-    return <div>Loading...</div>; // kamu bisa ganti ini dengan spinner yang lebih proper
+interface ProtectedRouteProps {
+  requireAdmin?: boolean;
+  redirectTo?: string;
+}
+
+const ProtectedRoute = ({
+  requireAdmin = false,
+  redirectTo = "/login",
+}: ProtectedRouteProps) => {
+  const { user, loading } = useUser();
+
+  // Show loading screen while determining authentication state
+  if (loading) {
+    return <LoadingScreen />;
   }
 
-  // jika tidak ada user, redirect ke login
+  // Not logged in
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={redirectTo} replace />;
+  }
+
+  // Role is not admin when accessing admin-only pages
+  if (requireAdmin && user.role.name.toLowerCase() !== "administrator") {
+    return <Navigate to="/" replace />;
   }
 
   return <Outlet />;
 };
 
 const PublicRoute = () => {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useUser();
 
-  if (isLoading) {
-    return <div>Loading...</div>; // bisa diganti spinner loading
+  // Show loading screen while determining authentication state
+  if (loading) {
+    return <LoadingScreen />;
   }
 
-  // Jika user sudah login, redirect ke dashboard
   if (user) {
     return <Navigate to="/dashboard" replace />;
   }
@@ -32,4 +52,4 @@ const PublicRoute = () => {
   return <Outlet />;
 };
 
-export { PublicRoute, ProtectedRoute };
+export { ProtectedRoute, PublicRoute };

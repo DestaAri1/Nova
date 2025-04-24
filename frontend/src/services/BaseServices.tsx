@@ -1,22 +1,42 @@
-import axios, { InternalAxiosRequestConfig } from "axios";
+import axios from "axios";
 import { getToken } from "./TokenSevices.tsx";
 
 const API_URL = "http://127.0.0.1:8000/api/";
 
-export const apiClient = axios.create({
+const apiClient = axios.create({
   baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
-    Accept: "application/json",
   },
 });
 
-apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = getToken();
-  if (token) {
-    config.headers.set("Authorization", `Bearer ${token}`);
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
+
+// Response interceptor to handle common errors
+apiClient.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    // Handle authentication errors globally
+    if (error.response && error.response.status === 401) {
+      // You might want to redirect to login or show a notification
+      console.error("Unauthorized access, please login again");
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default apiClient;

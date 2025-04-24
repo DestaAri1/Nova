@@ -3,12 +3,8 @@ import { Link } from "react-router-dom";
 import { Package, ShoppingCart, Users, Tag } from "lucide-react";
 import { ActivityItem, Order, StatItem } from "../../types/Index";
 import DashboarLayout from "../../layout/DashboarLayout.tsx";
-import useAuth from "../../hooks/useAuth.tsx";
 
 export const Dashboard: React.FC = () => {
-  const {user} = useAuth()
-  console.log(user);
-  
   // Mock data for dashboard stats
   const stats: StatItem[] = [
     { title: "Total Sales", value: "$12,426", change: "+12%", trend: "up" },

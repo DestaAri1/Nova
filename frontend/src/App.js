@@ -5,22 +5,21 @@ import { Login } from "./pages/Auth/Login.tsx";
 import { Dashboard } from "./pages/Dashboard/Dashboard.tsx";
 import { RoleManagement } from "./pages/Dashboard/RoleManagement.tsx";
 import { UserManagement } from "./pages/Dashboard/User.tsx";
-import {PublicRoute, ProtectedRoute} from "./utils/AuthRoute.tsx"
+import { PublicRoute, ProtectedRoute } from "./utils/AuthRoute.tsx"
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Route */}
+        {/* Public Routes */}
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<Login />} />
         </Route>
 
-        {/* Route yang bisa diakses siapa saja */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* Protected Routes */}
-        <Route element={<ProtectedRoute />}>
+        {/* Protected Routes for Admin */}
+        <Route element={<ProtectedRoute requireAdmin={true} />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route
             path="/dashboard/role-management"
