@@ -180,119 +180,103 @@ export const RoleManagement: React.FC = () => {
   };
 
   return (
-    <DashboarLayout>
-      <div className="flex-1 overflow-y-auto bg-gray-900 p-4 lg:p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-semibold">Role Management</h1>
-              <p className="text-gray-400">Manage user roles and permissions</p>
-            </div>
-            <div className="mt-4 md:mt-0">
-              <button
-                onClick={openAddModal}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add New Role
-              </button>
-            </div>
-          </div>
-
-          {/* Roles Table */}
-          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden mb-6">
-            <div className="p-6 border-b border-gray-700">
-              <h2 className="text-lg font-medium">System Roles</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-700">
-                <thead className="bg-gray-800">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                    >
-                      Role Name
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                    >
-                      Description
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                    >
-                      Users
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                    >
-                      Created Date
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                    >
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-gray-800 divide-y divide-gray-700">
-                  {roles.map((role) => (
-                    <tr key={role.id} className="hover:bg-gray-750">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-8 w-8 rounded-full bg-purple-500/20 flex items-center justify-center">
-                            <Shield className="h-4 w-4 text-purple-400" />
-                          </div>
-                          <div className="ml-3">
-                            <p className="text-sm font-medium">{role.name}</p>
-                            <p className="text-xs text-gray-400">
-                              {role.permissions.length === 1 &&
-                              role.permissions[0] === "All permissions"
-                                ? "Full Access"
-                                : `${role.permissions.length} permissions`}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <p className="text-sm text-gray-300">
-                          {role.description}
+    <DashboarLayout
+      isActive={true}
+      text="Manage user roles and permissions"
+      title="Role Management"
+      icon={Plus}
+      buttonTitle="Add New Role"
+    >
+      {/* Roles Table */}
+      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden mb-6">
+        <div className="p-6 border-b border-gray-700">
+          <h2 className="text-lg font-medium">System Roles</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-700">
+            <thead className="bg-gray-800">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Role Name
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Description
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Users
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Created Date
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-gray-800 divide-y divide-gray-700">
+              {roles.map((role) => (
+                <tr key={role.id} className="hover:bg-gray-750">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-8 w-8 rounded-full bg-purple-500/20 flex items-center justify-center">
+                        <Shield className="h-4 w-4 text-purple-400" />
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium">{role.name}</p>
+                        <p className="text-xs text-gray-400">
+                          {role.permissions.length === 1 &&
+                          role.permissions[0] === "All permissions"
+                            ? "Full Access"
+                            : `${role.permissions.length} permissions`}
                         </p>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        {role.users}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                        {role.createdAt}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => openEditModal(role)}
-                            className="p-1 bg-blue-900/20 text-blue-400 rounded hover:bg-blue-900/40 transition-colors"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(role)}
-                            className="p-1 bg-red-900/20 text-red-400 rounded hover:bg-red-900/40 transition-colors"
-                            disabled={role.name === "Administrator"}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4">
+                    <p className="text-sm text-gray-300">{role.description}</p>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {role.users}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    {role.createdAt}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => openEditModal(role)}
+                        className="p-1 bg-blue-900/20 text-blue-400 rounded hover:bg-blue-900/40 transition-colors"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal(role)}
+                        className="p-1 bg-red-900/20 text-red-400 rounded hover:bg-red-900/40 transition-colors"
+                        disabled={role.name === "Administrator"}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
 
           {/* Role Details */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

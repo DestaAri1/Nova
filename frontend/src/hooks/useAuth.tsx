@@ -5,7 +5,8 @@ import {
   logout as logoutService,
   getUser as getUserService,
 } from "../services/AuthServices.tsx";
-import { setTokenUser } from "../services/TokenSevices.tsx";
+import { setToken, setTokenUser } from "../services/TokenSevices.tsx";
+import Cookies from 'js-cookie'
 
 interface UseAuthReturn {
   user: any | null;
@@ -55,9 +56,10 @@ export default function useAuth(): UseAuthReturn {
       // After successful login, fetch user data
       if (response && response.token) {
         try {
-          const userData = response.data || (await getUserService());
+          const userData = response.user || (await getUserService());
           setUser(userData);
           setTokenUser(userData, "user");
+          setToken(userData?.role.name, "role");
 
           return response;
         } catch (userErr) {
@@ -101,8 +103,10 @@ export default function useAuth(): UseAuthReturn {
       setError(null);
       await logoutService();
       setUser(null);
-      localStorage.removeItem("user");
-      localStorage.removeItem("rememberMe");
+      const allCookies = Cookies.get()
+      Object.keys(allCookies).forEach((cookieName) => {
+        Cookies.remove(cookieName);
+      });
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || "Logout failed.";
       setError(errorMessage);

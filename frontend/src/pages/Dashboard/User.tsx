@@ -266,194 +266,176 @@ export const UserManagement: React.FC = () => {
   };
 
   return (
-    <DashboarLayout>
-      <main className="flex-1 overflow-y-auto bg-gray-900 p-4 lg:p-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
-            <div>
-              <h1 className="text-2xl font-semibold">User Management</h1>
-              <p className="text-gray-400">
-                Manage system users and their access
-              </p>
+    <DashboarLayout
+      isActive={true}
+      title="User Management"
+      text="Manage system users and their access"
+      icon={UserPlus}
+      buttonTitle="Add User"
+    >
+      {/* Search and Filters */}
+      <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 mb-6">
+        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
             </div>
-            <div className="mt-4 md:mt-0">
-              <button
-                onClick={openAddModal}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity flex items-center"
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="appearance-none bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <UserPlus className="h-4 w-4 mr-2" />
-                Add New User
-              </button>
+                <option value="All">All Status</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Pending">Pending</option>
+              </select>
+              <Filter className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
             </div>
-          </div>
-
-          {/* Search and Filters */}
-          <div className="bg-gray-800 rounded-xl border border-gray-700 p-4 mb-6">
-            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search users..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                </div>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="relative">
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as any)}
-                    className="appearance-none bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="All">All Status</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                    <option value="Pending">Pending</option>
-                  </select>
-                  <Filter className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-                </div>
-                <div className="relative">
-                  <select
-                    value={roleFilter}
-                    onChange={(e) => setRoleFilter(e.target.value)}
-                    className="appearance-none bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="All">All Roles</option>
-                    {availableRoles.map((role) => (
-                      <option key={role} value={role}>
-                        {role}
-                      </option>
-                    ))}
-                  </select>
-                  <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                  <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Users Table */}
-          <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden mb-6">
-            <div className="p-6 border-b border-gray-700">
-              <h2 className="text-lg font-medium">System Users</h2>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-700">
-                <thead className="bg-gray-800">
-                  <tr>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                    >
-                      User
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                    >
-                      Role
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                    >
-                      Status
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                    >
-                      Last Login
-                    </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                    >
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-gray-800 divide-y divide-gray-700">
-                  {filteredUsers.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-750">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
-                            {getInitials(user.name)}
-                          </div>
-                          <div className="ml-3">
-                            <p className="text-sm font-medium">{user.name}</p>
-                            <p className="text-xs text-gray-400">
-                              {user.email}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs bg-gray-700 rounded-full">
-                          {user.role}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                            user.status
-                          )}`}
-                        >
-                          {user.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                        {user.lastLogin}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => openViewModal(user)}
-                            className="p-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600 transition-colors"
-                          >
-                            <User className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => openEditModal(user)}
-                            className="p-1 bg-blue-900/20 text-blue-400 rounded hover:bg-blue-900/40 transition-colors"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => openDeleteModal(user)}
-                            className="p-1 bg-red-900/20 text-red-400 rounded hover:bg-red-900/40 transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="p-4 border-t border-gray-700 flex justify-between items-center">
-              <p className="text-sm text-gray-400">
-                Showing {filteredUsers.length} of {users.length} users
-              </p>
-              <div className="flex space-x-2">
-                <button className="px-3 py-1 bg-gray-700 rounded text-sm hover:bg-gray-600 transition-colors">
-                  Previous
-                </button>
-                <button className="px-3 py-1 bg-gray-700 rounded text-sm hover:bg-gray-600 transition-colors">
-                  Next
-                </button>
-              </div>
+            <div className="relative">
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="appearance-none bg-gray-700 border border-gray-600 rounded-lg pl-10 pr-8 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="All">All Roles</option>
+                {availableRoles.map((role) => (
+                  <option key={role} value={role}>
+                    {role}
+                  </option>
+                ))}
+              </select>
+              <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
             </div>
           </div>
         </div>
-      </main>
+      </div>
+
+      {/* Users Table */}
+      <div className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden mb-6">
+        <div className="p-6 border-b border-gray-700">
+          <h2 className="text-lg font-medium">System Users</h2>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-700">
+            <thead className="bg-gray-800">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  User
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Role
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Last Login
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-gray-800 divide-y divide-gray-700">
+              {filteredUsers.map((user) => (
+                <tr key={user.id} className="hover:bg-gray-750">
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white font-medium">
+                        {getInitials(user.name)}
+                      </div>
+                      <div className="ml-3">
+                        <p className="text-sm font-medium">{user.name}</p>
+                        <p className="text-xs text-gray-400">{user.email}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className="px-2 py-1 text-xs bg-gray-700 rounded-full">
+                      {user.role}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                        user.status
+                      )}`}
+                    >
+                      {user.status}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    {user.lastLogin}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => openViewModal(user)}
+                        className="p-1 bg-gray-700 text-gray-300 rounded hover:bg-gray-600 transition-colors"
+                      >
+                        <User className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => openEditModal(user)}
+                        className="p-1 bg-blue-900/20 text-blue-400 rounded hover:bg-blue-900/40 transition-colors"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => openDeleteModal(user)}
+                        className="p-1 bg-red-900/20 text-red-400 rounded hover:bg-red-900/40 transition-colors"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="p-4 border-t border-gray-700 flex justify-between items-center">
+          <p className="text-sm text-gray-400">
+            Showing {filteredUsers.length} of {users.length} users
+          </p>
+          <div className="flex space-x-2">
+            <button className="px-3 py-1 bg-gray-700 rounded text-sm hover:bg-gray-600 transition-colors">
+              Previous
+            </button>
+            <button className="px-3 py-1 bg-gray-700 rounded text-sm hover:bg-gray-600 transition-colors">
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Modal */}
       {isModalOpen && (
