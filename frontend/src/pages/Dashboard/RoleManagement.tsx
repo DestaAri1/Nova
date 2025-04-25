@@ -1,11 +1,8 @@
-import React, { useState } from "react";
-import {
-  Shield,
-  Edit,
-  Trash2,
-  Plus,
-} from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Shield, Edit, Trash2, Plus } from "lucide-react";
 import DashboarLayout from "../../layout/DashboarLayout.tsx";
+import { useModal } from "../../hooks/useModal.tsx";
+import { Modal } from "../../component/Modal.tsx";
 
 interface Role {
   id: string;
@@ -62,17 +59,8 @@ export const RoleManagement: React.FC = () => {
   ]);
 
   // State for modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalType, setModalType] = useState<"add" | "edit" | "delete">("add");
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-
-  // State for new/edited role form
-  const [formData, setFormData] = useState<Omit<Role, "id" | "createdAt">>({
-    name: "",
-    description: "",
-    users: 0,
-    permissions: [],
-  });
+  const { isOpen, modalType, selectedItem, openModal, closeModal } =
+    useModal<Role>();
 
   // Available permissions
   const availablePermissions = [
@@ -86,40 +74,31 @@ export const RoleManagement: React.FC = () => {
     "Billing",
   ];
 
-  // Open modal functions
-  const openAddModal = () => {
-    setFormData({
-      name: "",
-      description: "",
-      users: 0,
-      permissions: [],
-    });
-    setModalType("add");
-    setIsModalOpen(true);
-  };
+  // State for form data
+  const [formData, setFormData] = useState<
+    Omit<Role, "id" | "createdAt" | "users">
+  >({
+    name: "",
+    description: "",
+    permissions: [],
+  });
 
-  const openEditModal = (role: Role) => {
-    setSelectedRole(role);
-    setFormData({
-      name: role.name,
-      description: role.description,
-      users: role.users,
-      permissions: [...role.permissions],
-    });
-    setModalType("edit");
-    setIsModalOpen(true);
-  };
-
-  const openDeleteModal = (role: Role) => {
-    setSelectedRole(role);
-    setModalType("delete");
-    setIsModalOpen(true);
-  };
-
-  // Close modal
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
+  // Reset form when modal type changes
+  useEffect(() => {
+    if (modalType === "add") {
+      setFormData({
+        name: "",
+        description: "",
+        permissions: [],
+      });
+    } else if (modalType === "edit" && selectedItem) {
+      setFormData({
+        name: selectedItem.name,
+        description: selectedItem.description,
+        permissions: [...selectedItem.permissions],
+      });
+    }
+  }, [modalType, selectedItem]);
 
   // Handle form changes
   const handleInputChange = (
@@ -160,9 +139,9 @@ export const RoleManagement: React.FC = () => {
         }),
       };
       setRoles([...roles, newRole]);
-    } else if (modalType === "edit" && selectedRole) {
+    } else if (modalType === "edit" && selectedItem) {
       const updatedRoles = roles.map((role) =>
-        role.id === selectedRole.id
+        role.id === selectedItem.id
           ? {
               ...role,
               name: formData.name,
@@ -172,8 +151,8 @@ export const RoleManagement: React.FC = () => {
           : role
       );
       setRoles(updatedRoles);
-    } else if (modalType === "delete" && selectedRole) {
-      const filteredRoles = roles.filter((role) => role.id !== selectedRole.id);
+    } else if (modalType === "delete" && selectedItem) {
+      const filteredRoles = roles.filter((role) => role.id !== selectedItem.id);
       setRoles(filteredRoles);
     }
     closeModal();
@@ -259,13 +238,13 @@ export const RoleManagement: React.FC = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex space-x-2">
                       <button
-                        onClick={() => openEditModal(role)}
+                        onClick={() => openModal("edit", role)}
                         className="p-1 bg-blue-900/20 text-blue-400 rounded hover:bg-blue-900/40 transition-colors"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => openDeleteModal(role)}
+                        onClick={() => openModal("delete", role)}
                         className="p-1 bg-red-900/20 text-red-400 rounded hover:bg-red-900/40 transition-colors"
                         disabled={role.name === "Administrator"}
                       >
@@ -371,7 +350,94 @@ export const RoleManagement: React.FC = () => {
       </div>
 
       {/* Modal */}
-      {isModalOpen && (
+      <Modal
+        isOpen={isOpen && (modalType === "add" || modalType === "edit")}
+        onClose={closeModal}
+        title={modalType === "add" ? "Add New Role" : "Edit Role"}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-1">
+              Role Name
+            </label>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter role name"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-1">
+              Description
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              className="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              rows={3}
+              placeholder="Enter role description"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-2">
+              Permissions
+            </label>
+            <div className="space-y-2 max-h-48 overflow-y-auto p-2 bg-gray-750 rounded-lg">
+              <div className="flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  id="all-permissions"
+                  checked={formData.permissions.includes("All permissions")}
+                  onChange={() => {
+                    if (formData.permissions.includes("All permissions")) {
+                      setFormData({ ...formData, permissions: [] });
+                    } else {
+                      setFormData({
+                        ...formData,
+                        permissions: ["All permissions"],
+                      });
+                    }
+                  }}
+                  className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-600 rounded"
+                />
+                <label
+                  htmlFor="all-permissions"
+                  className="ml-2 text-sm font-medium"
+                >
+                  All permissions (Administrator)
+                </label>
+              </div>
+              <div className="border-t border-gray-700 my-2"></div>
+              {availablePermissions.map((permission) => (
+                <div key={permission} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={`permission-${permission}`}
+                    checked={
+                      formData.permissions.includes(permission) ||
+                      formData.permissions.includes("All permissions")
+                    }
+                    onChange={() => togglePermission(permission)}
+                    disabled={formData.permissions.includes("All permissions")}
+                    className="h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-600 rounded"
+                  />
+                  <label
+                    htmlFor={`permission-${permission}`}
+                    className="ml-2 text-sm"
+                  >
+                    {permission}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Modal>
+      {/* {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
           <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-md p-6">
             {modalType === "delete" ? (
@@ -512,7 +578,7 @@ export const RoleManagement: React.FC = () => {
             )}
           </div>
         </div>
-      )}
+      )} */}
     </DashboarLayout>
   );
 };

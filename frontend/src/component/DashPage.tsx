@@ -12,6 +12,7 @@ type DashTitleProps = {
   text: string;
   buttonTitle?: string;
   icon?: React.ElementType;
+  onClick?: () => void
 };
 
 const DashLayout: React.FC<LayoutProps> = ({ children }) => {
@@ -36,7 +37,7 @@ const DashTitle: React.FC<DashTitleProps> = (props) => {
   const { title, text, isActive } = props;
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
       <div>
         <h1 className="text-2xl font-semibold">{title}</h1>
         <p className="text-gray-400">{text}</p>
@@ -44,7 +45,7 @@ const DashTitle: React.FC<DashTitleProps> = (props) => {
 
       {isActive && props.buttonTitle && (
         <div className="mt-4 md:mt-0">
-          <button className="flex items-center bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
+          <button onClick={props.onClick} className="flex items-center bg-gradient-to-r from-blue-500 to-purple-600 px-4 py-2 rounded-lg font-medium hover:opacity-90 transition-opacity">
             {props.icon && <props.icon className="h-4 w-4 mr-2" />}
             {props.buttonTitle}
           </button>

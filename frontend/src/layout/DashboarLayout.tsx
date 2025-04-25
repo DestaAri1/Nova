@@ -3,7 +3,12 @@ import SideNav from "../component/Navbar/Dashboard/SideNav.tsx";
 import TopNav from "../component/Navbar/Dashboard/TopNav.tsx";
 import { Home, User, UserCheck } from "lucide-react";
 import { NavItem } from "../types/Index.tsx";
-import { DashLayout, DashMain, DashMainContent, DashTitle } from "../component/DashPage.tsx";
+import {
+  DashLayout,
+  DashMain,
+  DashMainContent,
+  DashTitle,
+} from "../component/DashPage.tsx";
 import { getToken } from "../services/TokenSevices.tsx";
 
 interface DashboarLayoutProps {
@@ -13,14 +18,23 @@ interface DashboarLayoutProps {
   isActive: boolean;
   buttonTitle?: string;
   icon?: React.ElementType;
+  onClick?: () => void;
 }
 
-export default function DashboarLayout({ children, text, title, isActive, buttonTitle, icon }: DashboarLayoutProps) {
+export default function DashboarLayout({
+  children,
+  text,
+  title,
+  isActive,
+  buttonTitle,
+  icon,
+  onClick,
+}: DashboarLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const user = getToken('role')
+  const user = getToken("role");
 
   // Handle responsive sidebar
   useEffect(() => {
@@ -46,27 +60,27 @@ export default function DashboarLayout({ children, text, title, isActive, button
     setMobileMenuOpen(false);
   };
 
-   const navItems: NavItem[] = [
-     {
-       name: "Dashboard",
-       icon: <Home className="w-5 h-5" />,
-       href: "/dashboard",
-     },
-     {
-       name: "Role Management",
-       icon: <UserCheck className="w-5 h-5" />,
-       href: "/dashboard/role-management",
-     },
-     ...(user === "Administrator"
-       ? [
-           {
-             name: "User Management",
-             icon: <User className="w-5 h-5" />,
-             href: "/dashboard/users",
-           },
-         ]
-       : []),
-   ];
+  const navItems: NavItem[] = [
+    {
+      name: "Dashboard",
+      icon: <Home className="w-5 h-5" />,
+      href: "/dashboard",
+    },
+    {
+      name: "Role Management",
+      icon: <UserCheck className="w-5 h-5" />,
+      href: "/dashboard/role-management",
+    },
+    ...(user === "Administrator"
+      ? [
+          {
+            name: "User Management",
+            icon: <User className="w-5 h-5" />,
+            href: "/dashboard/users",
+          },
+        ]
+      : []),
+  ];
   return (
     <DashLayout>
       <SideNav
@@ -94,9 +108,10 @@ export default function DashboarLayout({ children, text, title, isActive, button
             isActive={isActive}
             buttonTitle={isActive && buttonTitle ? buttonTitle : undefined}
             icon={isActive && icon ? icon : undefined}
+            onClick={onClick}
           />
+          {children}
         </DashMainContent>
-        {children}
       </DashMain>
     </DashLayout>
   );
