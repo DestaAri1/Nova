@@ -1,244 +1,157 @@
-import React, { useState } from "react";
+import React, { lazy, Suspense, useState } from "react";
 import { UserPlus } from "lucide-react";
 import DashboarLayout from "../../layout/DashboarLayout.tsx";
-import { UserData } from "../../types/Index.tsx";
-import { useModal } from "../../hooks/useModal.tsx";
-import UserTable from "../../component/User/UserTable.tsx";
 import AddUserModal from "../../component/User/AddUserModal.tsx";
 import DeleteUserModal from "../../component/User/DeleteUserModal.tsx";
-import EditUserModal from "../../component/User/EditUserModal.tsx";
-import { useSearchFilter } from "../../hooks/useSearchFilter.tsx";
 import SearchFilter from "../../component/User/SearchFilter.tsx";
+import useUserHook from "../../hooks/useUserHook.tsx";
+import { useModal } from "../../hooks/useModal.tsx";
+import { UserInterface } from "../../types/Index";
+import ViewUserModal from "../../component/User/ViewUserModal.tsx";
+import { UserBox, UserBoxTitle } from "../../component/User/UserPage.tsx";
+import LoadingSpinner2 from "../../component/LoadingSpinner2.tsx";
+
+const LazyUserTable = lazy(() => import("../../component/User/UserTable.tsx"));
+
+// Define additional user form data structure
+interface UserFormData {
+  name: string;
+  email: string;
+  role_id: string;
+  is_active: number;
+  phone?: string;
+  department?: string;
+}
 
 export const UserManagement: React.FC = () => {
-  const [users, setUsers] = useState<UserData[]>([
-    {
-      id: "usr-001",
-      name: "John Doe",
-      email: "john.doe@example.com",
-      role: "Administrator",
-      status: "Active",
-      lastLogin: "Today, 10:30 AM",
-      phone: "+1 (555) 123-4567",
-      department: "IT Department",
-      joinedDate: "Jan 15, 2024",
-    },
-    {
-      id: "usr-002",
-      name: "Sarah Johnson",
-      email: "sarah.j@example.com",
-      role: "Manager",
-      status: "Active",
-      lastLogin: "Yesterday, 3:45 PM",
-      phone: "+1 (555) 234-5678",
-      department: "Sales",
-      joinedDate: "Mar 22, 2024",
-    },
-    {
-      id: "usr-003",
-      name: "Michael Brown",
-      email: "michael.b@example.com",
-      role: "Sales Representative",
-      status: "Active",
-      lastLogin: "Apr 20, 2025, 8:15 AM",
-      phone: "+1 (555) 345-6789",
-      department: "Sales",
-      joinedDate: "Feb 10, 2024",
-    },
-    {
-      id: "usr-004",
-      name: "Emily Wilson",
-      email: "emily.w@example.com",
-      role: "Inventory Manager",
-      status: "Inactive",
-      lastLogin: "Apr 10, 2025, 11:20 AM",
-      phone: "+1 (555) 456-7890",
-      department: "Inventory",
-      joinedDate: "Nov 5, 2024",
-    },
-    {
-      id: "usr-005",
-      name: "David Chen",
-      email: "david.c@example.com",
-      role: "Customer Support",
-      status: "Active",
-      lastLogin: "Today, 9:05 AM",
-      phone: "+1 (555) 567-8901",
-      department: "Customer Service",
-      joinedDate: "Jan 30, 2025",
-    },
-    {
-      id: "usr-006",
-      name: "Lisa Garcia",
-      email: "lisa.g@example.com",
-      role: "Manager",
-      status: "Active",
-      lastLogin: "Apr 21, 2025, 2:40 PM",
-      phone: "+1 (555) 678-9012",
-      department: "Marketing",
-      joinedDate: "Dec 12, 2024",
-    },
-    {
-      id: "usr-007",
-      name: "Robert Taylor",
-      email: "robert.t@example.com",
-      role: "Sales Representative",
-      status: "Pending",
-      lastLogin: "Never",
-      phone: "+1 (555) 789-0123",
-      department: "Sales",
-      joinedDate: "Apr 18, 2025",
-    },
-  ]);
-
-  // Use our custom hook for modal management
+  const { users } = useUserHook();
   const { isOpen, modalType, selectedItem, openModal, closeModal } =
-    useModal<UserData>();
+    useModal<UserInterface>();
 
-  // Available roles
-  const availableRoles = [
-    "Administrator",
-    "Manager",
-    "Sales Representative",
-    "Inventory Manager",
-    "Customer Support",
-  ];
+  // State for search and filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<
+    "All" | "Active" | "Inactive"
+  >("All");
+  const [roleFilter, setRoleFilter] = useState("All");
 
-  // Custom filter function for users
-  const filterUsers = (
-    users: UserData[],
-    searchTerm: string,
-    statusFilter: "All" | "Active" | "Inactive" | "Pending",
-    roleFilter: string
-  ) => {
-    return users.filter((user) => {
-      // Apply search filter
-      const matchesSearch =
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.id.toLowerCase().includes(searchTerm.toLowerCase());
-
-      // Apply status filter
-      const matchesStatus =
-        statusFilter === "All" || user.status === statusFilter;
-
-      // Apply role filter
-      const matchesRole = roleFilter === "All" || user.role === roleFilter;
-
-      return matchesSearch && matchesStatus && matchesRole;
-    });
-  };
-
-  // Use our custom search filter hook
-  const {
-    searchTerm,
-    setSearchTerm,
-    statusFilter,
-    setStatusFilter,
-    roleFilter,
-    setRoleFilter,
-    filterItems,
-  } = useSearchFilter<UserData>({
-    initialSearchTerm: "",
-    initialStatusFilter: "All",
-    initialRoleFilter: "All",
-    availableRoles,
-    filterFunction: filterUsers,
-  });
-
-  // State for form data
-  const [formData, setFormData] = useState<Omit<UserData, "id" | "lastLogin">>({
+  // State for the form data
+  const [formData, setFormData] = useState<UserFormData>({
     name: "",
     email: "",
-    role: "Customer Support", // Default role
-    status: "Pending",
+    role_id: "",
+    is_active: 1,
     phone: "",
     department: "",
-    joinedDate: "",
   });
 
-  // Reset form when modal type changes
-  React.useEffect(() => {
-    if (modalType === "add") {
-      setFormData({
-        name: "",
-        email: "",
-        role: "Customer Support",
-        status: "Pending",
-        phone: "",
-        department: "",
-        joinedDate: "",
-      });
-    } else if (modalType === "edit" && selectedItem) {
-      setFormData({
-        name: selectedItem.name,
-        email: selectedItem.email,
-        role: selectedItem.role,
-        status: selectedItem.status,
-        phone: selectedItem.phone || "",
-        department: selectedItem.department || "",
-        joinedDate: selectedItem.joinedDate,
-      });
-    }
-  }, [modalType, selectedItem]);
+  // Extract available roles from users
+  const availableRoles = users
+    ? Array.from(new Set(users.map((user) => user.role.name)))
+    : [];
 
-  // Handle form changes
+  // Handle form input changes
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+
+    // Special handling for status dropdown that needs to be converted to a number
+    if (name === "status") {
+      setFormData({
+        ...formData,
+        is_active: value === "Active" ? 1 : 0,
+      });
+    } else if (name === "role") {
+      // Find the role_id that corresponds to the selected role name
+      const selectedRole = users?.find((user) => user.role.name === value);
+      if (selectedRole) {
+        setFormData({
+          ...formData,
+          role_id: selectedRole.role_id,
+        });
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
-  const openAddUserModal = () => {
-    openModal("add", undefined);
+  // Open edit modal with pre-filled data
+  const handleEdit = (user: UserInterface) => {
+    setFormData({
+      name: user.name,
+      email: user.email,
+      role_id: user.role_id,
+      is_active: user.is_active,
+      phone: "",
+      department: "",
+    });
+    openModal("edit", user);
   };
 
-  const openEditUserModal = (data) => {
-    openModal("edit", data);
+  // Open view modal
+  const handleView = (user: UserInterface) => {
+    openModal("view", user);
   };
 
-  // Handle form submission
+  // Open delete modal
+  const handleDelete = (user: UserInterface) => {
+    openModal("delete", user);
+  };
+
+  // Add new user
+  const handleAdd = () => {
+    setFormData({
+      name: "",
+      email: "",
+      role_id:
+        availableRoles.length > 0
+          ? users?.find((user) => user.role.name === availableRoles[0])
+              ?.role_id || ""
+          : "",
+      is_active: 1,
+      phone: "",
+      department: "",
+    });
+    openModal("add");
+  };
+
+  // Submit form
   const handleSubmit = () => {
     if (modalType === "add") {
-      const newUser: UserData = {
-        id: `usr-${String(users.length + 1).padStart(3, "0")}`,
-        name: formData.name,
-        email: formData.email,
-        role: formData.role,
-        status: formData.status as "Active" | "Inactive" | "Pending",
-        lastLogin: "Never",
-        phone: formData.phone,
-        department: formData.department,
-        joinedDate: formData.joinedDate,
-      };
-      setUsers([...users, newUser]);
+      console.log("Adding new user:", formData);
+      // Implement API call to add user
     } else if (modalType === "edit" && selectedItem) {
-      const updatedUsers = users.map((user) =>
-        user.id === selectedItem.id
-          ? {
-              ...user,
-              name: formData.name,
-              email: formData.email,
-              role: formData.role,
-              status: formData.status as "Active" | "Inactive" | "Pending",
-              phone: formData.phone,
-              department: formData.department,
-            }
-          : user
-      );
-      setUsers(updatedUsers);
+      console.log("Updating user:", selectedItem.id, formData);
+      // Implement API call to update user
     } else if (modalType === "delete" && selectedItem) {
-      const filteredUsers = users.filter((user) => user.id !== selectedItem.id);
-      setUsers(filteredUsers);
+      console.log("Deleting user:", selectedItem.id);
+      // Implement API call to delete user
     }
     closeModal();
   };
 
-  // Get filtered users
-  const filteredUsers = filterItems(users);
+  // Filter users based on search and filters
+  const filteredUsers = users?.filter((user) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
 
-  // Generate avatar placeholder based on name
+    const matchesStatus =
+      statusFilter === "All" ||
+      (statusFilter === "Active" && user.is_active === 1) ||
+      (statusFilter === "Inactive" && user.is_active === 0);
+
+    const matchesRole = roleFilter === "All" || user.role.name === roleFilter;
+
+    return matchesSearch && matchesStatus && matchesRole;
+  });
+
+  // Helper functions for user display
   const getInitials = (name: string) => {
     return name
       .split(" ")
@@ -248,7 +161,6 @@ export const UserManagement: React.FC = () => {
       .slice(0, 2);
   };
 
-  // Get status color
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Active":
@@ -269,9 +181,8 @@ export const UserManagement: React.FC = () => {
       text="Manage system users and their access"
       icon={UserPlus}
       buttonTitle="Add User"
-      onClick={openAddUserModal}
+      onClick={handleAdd}
     >
-      {/* Search and Filters */}
       <SearchFilter
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -283,41 +194,76 @@ export const UserManagement: React.FC = () => {
       />
 
       {/* Users Table */}
-      <UserTable
-        users={filteredUsers}
-        getInitials={getInitials}
-        getStatusColor={getStatusColor}
-        onEdit={(user) => openModal("edit", user)}
-        onDelete={(user) => openModal("delete", user)}
-      />
+      <UserBox>
+        <UserBoxTitle />
+        {/* lazy load user table */}
+        <Suspense fallback={<LoadingSpinner2 />}>
+          <LazyUserTable
+            users={filteredUsers || []}
+            onEdit={handleEdit}
+            onView={handleView}
+            onDelete={handleDelete}
+          />
+        </Suspense>
+      </UserBox>
 
-      {/* Modals */}
+      {/* Add/Edit User Modal */}
       <AddUserModal
         isOpen={isOpen}
         modalType={modalType}
         closeModal={closeModal}
-        formData={formData}
+        formData={{
+          name: formData.name,
+          email: formData.email,
+          role: selectedItem?.role.name || availableRoles[0] || "",
+          status: formData.is_active === 1 ? "Active" : "Inactive",
+          phone: formData.phone || "",
+          department: formData.department || "",
+        }}
         handleInputChange={handleInputChange}
         handleSubmit={handleSubmit}
         availableRoles={availableRoles}
       />
 
-      <EditUserModal
-        isOpen={isOpen}
-        modalType={modalType}
-        closeModal={closeModal}
-        selectedItem={selectedItem}
-        getInitials={getInitials}
-        getStatusColor={getStatusColor}
-        openModal={openEditUserModal}
-      />
-
+      {/* Delete User Modal */}
       <DeleteUserModal
         isOpen={isOpen}
         modalType={modalType}
         closeModal={closeModal}
-        selectedItem={selectedItem}
+        selectedItem={
+          selectedItem
+            ? {
+                id: selectedItem.id,
+                name: selectedItem.name,
+              }
+            : null
+        }
         handleSubmit={handleSubmit}
+      />
+
+      {/* View User Modal */}
+      <ViewUserModal
+        isOpen={isOpen}
+        modalType={modalType}
+        closeModal={closeModal}
+        selectedItem={
+          selectedItem
+            ? {
+                id: selectedItem.id,
+                name: selectedItem.name,
+                email: selectedItem.email,
+                role: selectedItem.role.name,
+                status: selectedItem.is_active === 1 ? "Active" : "Inactive",
+                phone: "",
+                department: "",
+                joinedDate: selectedItem.created_at,
+                lastLogin: selectedItem.updated_at,
+              }
+            : null
+        }
+        getInitials={getInitials}
+        getStatusColor={getStatusColor}
+        openModal={(type, item) => handleEdit(selectedItem as UserInterface)}
       />
     </DashboarLayout>
   );

@@ -30,15 +30,40 @@ export interface ActivityItem {
   time: string;
 }
 
-export interface UserData {
-  id: string;
+// types/Index.tsx
+export interface UserInterface {
+  id: number;
   name: string;
   email: string;
-  role: string;
-  status: "Active" | "Inactive" | "Pending";
-  lastLogin: string;
-  phone?: string;
-  avatar?: string;
-  department?: string;
-  joinedDate: string;
+  email_verified_at: string | null;
+  is_active: number;
+  role_id: string;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  role: Role;
 }
+
+export interface UserData {
+  id: number;
+  name: string;
+  email?: string;
+  role?: string;
+  status?: string | null;
+  phone?: string;
+  department?: string;
+  joinedDate?: string;
+  lastLogin?: string;
+}
+
+interface Permission {
+  [key: string]: number;
+}
+
+interface Role {
+  id: string;
+  name: string;
+  is_active: number;
+  permission: Permission[];
+}
+

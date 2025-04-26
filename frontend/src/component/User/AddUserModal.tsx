@@ -1,12 +1,11 @@
 import React from "react";
 import { Modal } from "../Modal.tsx";
-import { UserData } from "../../types/Index.tsx";
 
 interface AddUserModalProps {
   isOpen: boolean;
   modalType: string;
   closeModal: () => void;
-  formData: Omit<UserData, "id" | "lastLogin">;
+  formData: any;
   handleInputChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => void;

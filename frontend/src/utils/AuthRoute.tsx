@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
-import useUser from "../hooks/useUser.tsx";
+import { useUserContext } from "../context/UserContext.tsx";
 
 const LoadingScreen = () => (
   <div className="flex justify-center items-center h-screen">
@@ -17,7 +17,7 @@ const ProtectedRoute = ({
   requireAdmin = false,
   redirectTo = "/login",
 }: ProtectedRouteProps) => {
-  const { user, loading } = useUser();
+  const { user, loading } = useUserContext();
 
   // Show loading screen while determining authentication state
   if (loading) {
@@ -38,7 +38,7 @@ const ProtectedRoute = ({
 };
 
 const PublicRoute = () => {
-  const { user, loading } = useUser();
+  const { user, loading } = useUserContext();
 
   // Show loading screen while determining authentication state
   if (loading) {

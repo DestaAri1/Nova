@@ -10,6 +10,7 @@ import {
   DashTitle,
 } from "../component/DashPage.tsx";
 import { getToken } from "../services/TokenSevices.tsx";
+import { useUserContext } from "../context/UserContext.tsx";
 
 interface DashboarLayoutProps {
   children: ReactNode;
@@ -34,7 +35,9 @@ export default function DashboarLayout({
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const user = getToken("role");
+
+  const userRole = getToken("role");
+  const { user } = useUserContext(); // Menggunakan context untuk user data
 
   // Handle responsive sidebar
   useEffect(() => {
@@ -45,10 +48,8 @@ export default function DashboarLayout({
         setSidebarOpen(true);
       }
     };
-
     window.addEventListener("resize", handleResize);
     handleResize(); // Initialize on mount
-
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -71,7 +72,7 @@ export default function DashboarLayout({
       icon: <UserCheck className="w-5 h-5" />,
       href: "/dashboard/role-management",
     },
-    ...(user === "Administrator"
+    ...(userRole === "Administrator"
       ? [
           {
             name: "User Management",
@@ -81,6 +82,7 @@ export default function DashboarLayout({
         ]
       : []),
   ];
+
   return (
     <DashLayout>
       <SideNav
@@ -100,6 +102,7 @@ export default function DashboarLayout({
           setUserMenuOpen={setUserMenuOpen}
           userMenuOpen={userMenuOpen}
           navItems={navItems}
+          user={user}
         />
         <DashMainContent>
           <DashTitle

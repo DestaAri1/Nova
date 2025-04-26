@@ -1,9 +1,9 @@
 import { Bell, ChevronDown, LogOut, Menu, Search, User, X } from "lucide-react";
 import React from "react";
 import { Link } from "react-router-dom";
-import { NavItem } from "../../../types/Index";
+import { NavItem, UserInterface } from "../../../types/Index.tsx";
 
-interface TopNavProps {
+export interface TopNavProps {
   mobileMenuOpen: boolean;
   closeMobileMenu: () => void;
   setMobileMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
@@ -12,6 +12,7 @@ interface TopNavProps {
   setUserMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
   userMenuOpen: boolean;
   navItems: NavItem[];
+  user: UserInterface | null;
 }
 
 export default function TopNav({
@@ -23,6 +24,7 @@ export default function TopNav({
   mobileMenuOpen,
   closeMobileMenu,
   navItems,
+  user,
 }: TopNavProps) {
   return (
     <>
@@ -63,7 +65,7 @@ export default function TopNav({
               <div className="h-8 w-8 rounded-full bg-gray-700 flex items-center justify-center border border-gray-600">
                 <User className="h-5 w-5" />
               </div>
-              <span className="ml-2 hidden lg:block">Admin User</span>
+              <span className="ml-2 hidden lg:block">{user?.name}</span>
               <ChevronDown className="ml-1 h-4 w-4 hidden lg:block" />
             </button>
 

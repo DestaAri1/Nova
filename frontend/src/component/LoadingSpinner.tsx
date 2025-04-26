@@ -1,11 +1,11 @@
 import React from "react";
 
 interface LoadingSpinnerProps {
-    text: string;
+    text?: string;
 
 }
 
-export default function LoadingSpinner({text = ""}: LoadingSpinnerProps) {
+export default function LoadingSpinner({text}: LoadingSpinnerProps) {
   return (
     <div className="flex items-center">
       <svg
